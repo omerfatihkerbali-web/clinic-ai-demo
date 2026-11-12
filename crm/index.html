@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CRM Walkthrough</title>
+<meta name="description" content="Walkthrough of a CRM built for a beauty academy: AI inbox, lead cards, pipeline, overview and ad report.">
+<style>
+:root{--bg:#f4f2ee;--panel:#fff;--ink:#1d1d1f;--muted:#6b6b70;--line:#e6e2db;--accent:#8a5a44}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:28px 16px 48px}
+h1{font-size:24px;margin:0 0 6px}
+.lead{color:var(--muted);margin:0 0 20px;max-width:760px}
+video{width:100%;border-radius:12px;background:#000;display:block;border:1px solid var(--line)}
+.note{font-size:14px;color:var(--muted);margin:8px 0 32px}
+h2{font-size:15px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 14px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+figure{margin:0;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+figure a{display:block}
+figure img{width:100%;display:block;border-bottom:1px solid var(--line)}
+figcaption{padding:12px 14px;font-size:14.5px}
+figcaption b{display:block;margin-bottom:2px}
+.back{display:inline-block;margin-bottom:18px;color:var(--accent);text-decoration:none;font-size:14px}
+@media (max-width:760px){.grid{grid-template-columns:1fr}h1{font-size:20px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../">← Back to the clinic flow demo</a>
+  <h1>The CRM: a real build</h1>
+  <p class="lead">This is a CRM I built for a beauty academy (brand and data anonymised as "Glow Beauty Academy"). Instagram and WhatsApp messages land in one inbox, the AI assistant answers and qualifies leads, and every lead gets a card with its ad source, stage, next step and full history. The full system also has payments, reminders, calendar, contracts, staff and a client portal. The clinic version would use the same base, adapted to treatments, consultations and packages.</p>
+  <video controls preload="metadata" playsinline poster="poster.jpg" src="crm-walkthrough.mp4"></video>
+  <p class="note">3-minute screen recording, no sound. Sections: Today → Inbox → AI conversation → Lead card → Leads list → Overview → Ad report.</p>
+
+  <h2>Screens</h2>
+  <div class="grid">
+    <figure><a href="01-today.png"><img src="01-today.png" alt="Today view" loading="lazy"></a><figcaption><b>Today</b>The day's to-do list: messages waiting for a reply, new leads, overdue follow-ups.</figcaption></figure>
+    <figure><a href="02-inbox.png"><img src="02-inbox.png" alt="Inbox" loading="lazy"></a><figcaption><b>Inbox</b>Instagram and WhatsApp conversations in one place, filterable by channel.</figcaption></figure>
+    <figure><a href="03-ai-chat-1.png"><img src="03-ai-chat-1.png" alt="AI conversation, start" loading="lazy"></a><figcaption><b>AI conversation</b>A lead from an ad: the AI's replies are tagged, staff can pause the AI and take over at any time.</figcaption></figure>
+    <figure><a href="04-ai-chat-2.png"><img src="04-ai-chat-2.png" alt="AI conversation, booking" loading="lazy"></a><figcaption><b>AI books the consultation</b>Goal, preferred schedule and payment questions answered, then a free consultation is booked and the name captured.</figcaption></figure>
+    <figure><a href="05-lead-card.png"><img src="05-lead-card.png" alt="Lead card" loading="lazy"></a><figcaption><b>Lead card</b>Stage, next step with date, source ad and owner.</figcaption></figure>
+    <figure><a href="06-lead-activity.png"><img src="06-lead-activity.png" alt="Lead activity" loading="lazy"></a><figcaption><b>Activity history</b>Notes written automatically by the AI: which ad, what they want, what was booked.</figcaption></figure>
+    <figure><a href="07-lead-details.png"><img src="07-lead-details.png" alt="Lead details" loading="lazy"></a><figcaption><b>Proposals, consent, details</b>Send proposals, record privacy consent (or erase personal data on request), referral codes, source ad and owner.</figcaption></figure>
+    <figure><a href="08-leads.png"><img src="08-leads.png" alt="Leads list" loading="lazy"></a><figcaption><b>Leads</b>All open leads with their next step, plus overdue and won tabs.</figcaption></figure>
+    <figure><a href="09-overview.png"><img src="09-overview.png" alt="Overview" loading="lazy"></a><figcaption><b>Overview</b>Daily leads chart, source split and key numbers.</figcaption></figure>
+    <figure><a href="10-ad-report.png"><img src="10-ad-report.png" alt="Ad report" loading="lazy"></a><figcaption><b>Ad report</b>Per ad: leads, reached, interested, consultations, sales, revenue and collected.</figcaption></figure>
+  </div>
+</div>
+</body>
+</html>
