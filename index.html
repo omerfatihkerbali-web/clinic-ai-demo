@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Lead System Demo · Aesthetic Clinic</title>
+<meta name="description" content="Interactive demo: AI assistant answers an ad lead, qualifies, books a consultation and updates the CRM live.">
+<style>
+:root{
+  --bg:#f4f2ee;--panel:#fff;--ink:#1d1d1f;--muted:#6b6b70;--line:#e6e2db;
+  --accent:#8a5a44;--accent-soft:#f3e9e3;--ok:#2f7d4f;--ok-soft:#e4f2e9;--warn:#b26b00;--warn-soft:#fbf0dc;--bad:#b3261e;--bad-soft:#f9e3e1;
+  --wa-bg:#efeae2;--wa-in:#fff;--wa-out:#d9fdd3;--wa-head:#075e54;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+header{padding:18px 24px 8px;display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 16px}
+header h1{font-size:19px;margin:0}
+header p{margin:0;color:var(--muted);font-size:14px}
+.reset{margin-left:auto;background:none;border:1px solid var(--line);border-radius:8px;padding:6px 12px;cursor:pointer;font:inherit;font-size:13px}
+.tabs{display:none;gap:6px;padding:0 16px 10px}
+.tabs button{flex:1;border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:9px;font:inherit;font-weight:600;cursor:pointer}
+.tabs button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.tabs .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--bad);margin-left:6px;vertical-align:middle;visibility:hidden}
+main{display:grid;grid-template-columns:400px 1fr;gap:20px;padding:8px 24px 24px;align-items:start}
+/* phone */
+.phone{background:var(--wa-bg);border-radius:28px;border:10px solid #1d1d1f;height:760px;display:flex;flex-direction:column;overflow:hidden;position:sticky;top:12px}
+.wa-head{background:var(--wa-head);color:#fff;padding:10px 14px;display:flex;align-items:center;gap:10px}
+.avatar{width:36px;height:36px;border-radius:50%;background:#d8b4a0;display:grid;place-items:center;font-weight:700;color:#5a3524}
+.wa-head b{display:block;font-size:15px}.wa-head small{opacity:.8;font-size:12px}
+.ad{margin:10px 10px 0;background:#fff;border-radius:10px;padding:8px 10px;font-size:12.5px;display:flex;gap:10px;align-items:center;box-shadow:0 1px 1px rgba(0,0,0,.06)}
+.ad .thumb{width:44px;height:44px;border-radius:8px;background:linear-gradient(135deg,#e9cbbb,#a7745d);flex:none}
+.ad span{color:var(--muted)}
+.chat{flex:1;overflow-y:auto;padding:10px 10px 4px;display:flex;flex-direction:column;gap:6px}
+.msg{max-width:84%;padding:7px 10px 18px;border-radius:9px;position:relative;white-space:pre-line;font-size:14.5px;box-shadow:0 1px 1px rgba(0,0,0,.07);animation:pop .18s ease-out}
+.msg.in{background:var(--wa-in);align-self:flex-start;border-top-left-radius:2px}
+.msg.out{background:var(--wa-out);align-self:flex-end;border-top-right-radius:2px}
+.msg.sys{align-self:center;background:#fff7d6;font-size:12.5px;padding:5px 10px;color:#5c4b00;max-width:95%;text-align:center}
+.msg time{position:absolute;right:8px;bottom:3px;font-size:10.5px;color:var(--muted)}
+.msg .tag{font-size:10px;font-weight:700;color:var(--accent);letter-spacing:.04em;display:block;margin-bottom:2px}
+.typing{align-self:flex-start;background:#fff;border-radius:9px;padding:8px 12px;font-size:13px;color:var(--muted)}
+@keyframes pop{from{transform:translateY(4px);opacity:0}to{transform:none;opacity:1}}
+.quick{display:flex;flex-wrap:wrap;gap:6px;padding:6px 10px}
+.quick button{background:#fff;border:1px solid #cfe9dc;color:#0b6b57;border-radius:16px;padding:6px 11px;font:inherit;font-size:13.5px;cursor:pointer}
+.quick button:hover{background:#f0faf5}
+.compose{display:flex;gap:6px;padding:8px 10px 10px}
+.compose input{flex:1;border:0;border-radius:20px;padding:10px 14px;font:inherit;outline:none}
+.compose button{border:0;border-radius:50%;width:42px;height:42px;background:var(--wa-head);color:#fff;font-size:17px;cursor:pointer}
+/* crm */
+.crm{display:grid;gap:16px;min-width:0}
+.crm>*,.grid2>*{min-width:0}
+.scroll-x{overflow-x:auto}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
+.card h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 12px;display:flex;justify-content:space-between;align-items:center}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.lead-top{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.lead-top .avatar{width:44px;height:44px}
+.lead-top b{font-size:17px;display:block}
+.pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:600;background:#eee;color:#444}
+.pill.hot{background:var(--bad-soft);color:var(--bad)}.pill.warm{background:var(--warn-soft);color:var(--warn)}.pill.cold{background:#e7eef8;color:#2b5aa0}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}.pill.ac{background:var(--accent-soft);color:var(--accent)}
+dl{display:grid;grid-template-columns:120px 1fr;gap:6px 10px;margin:0;font-size:14px}
+dt{color:var(--muted)}dd{margin:0}
+.flash{animation:flash 1.2s ease-out}
+@keyframes flash{0%{background:#fff3b0}100%{background:transparent}}
+.pipe{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.stage{background:#faf8f5;border:1px solid var(--line);border-radius:10px;padding:8px;min-height:120px}
+.stage h3{font-size:12px;margin:0 0 6px;color:var(--muted);font-weight:600;display:flex;justify-content:space-between}
+.chip{background:#fff;border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:12.5px;margin-bottom:6px;line-height:1.3}
+.chip.me{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.chip small{color:var(--muted);display:block}
+.log{list-style:none;margin:0;padding:0;font-size:13.5px;max-height:260px;overflow-y:auto}
+.log li{padding:7px 0;border-bottom:1px dashed var(--line);display:flex;gap:10px}
+.log li:last-child{border:0}
+.log time{color:var(--muted);flex:none;width:44px;font-variant-numeric:tabular-nums}
+.auto li{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px dashed var(--line);font-size:13.5px}
+.auto{list-style:none;margin:0;padding:0}
+.auto li:last-child{border:0}
+.auto .when{color:var(--muted);font-size:12.5px;white-space:nowrap}
+.cal{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.slot{border:1px solid var(--line);border-radius:8px;padding:8px;font-size:13px;background:#faf8f5}
+.slot.taken{background:#f1f1f1;color:#999;text-decoration:line-through}
+.slot.mine{background:var(--ok-soft);border-color:var(--ok);color:var(--ok);font-weight:600}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{text-align:right;padding:7px 6px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--muted);font-weight:600;font-size:12px}
+.sim{display:flex;flex-wrap:wrap;gap:8px}
+.sim button{border:1px dashed var(--accent);background:var(--accent-soft);color:var(--accent);border-radius:8px;padding:7px 11px;font:inherit;font-size:13px;cursor:pointer}
+.sim button:disabled{opacity:.4;cursor:default}
+.empty{color:var(--muted);font-size:13.5px}
+.handoff{display:none;background:var(--bad-soft);color:var(--bad);border-radius:10px;padding:10px 12px;font-size:13.5px;margin-top:10px}
+footer{padding:0 24px 30px;color:var(--muted);font-size:12.5px;max-width:900px}
+@media (max-width:900px){
+  header{padding:14px 16px 6px}
+  .tabs{display:flex}
+  main{grid-template-columns:minmax(0,1fr);padding:0 16px 16px}
+  header p{font-size:13px}.reset{padding:4px 10px}
+  .phone{height:calc(100svh - 190px);min-height:480px;border-width:0;border-radius:16px;position:static}
+  .grid2{grid-template-columns:1fr}
+  .pipe{grid-template-columns:repeat(5,minmax(110px,1fr));overflow-x:auto}
+  body[data-view=chat] .crm{display:none}
+  body[data-view=crm] .phone{display:none}
+  footer{padding:0 16px 24px}
+}
+</style>
+</head>
+<body data-view="chat">
+<header>
+  <h1>AI lead system: aesthetic clinic demo</h1>
+  <p>You play the lead. Watch the clinic's CRM update as you chat.</p>
+  <button class="reset" onclick="location.reload()">Restart</button>
+</header>
+<div class="tabs">
+  <button id="tChat" class="on" onclick="view('chat')">Chat</button>
+  <button id="tCrm" onclick="view('crm')">Clinic CRM<span class="dot" id="crmDot"></span></button>
+</div>
+<main>
+  <section class="phone" aria-label="WhatsApp chat">
+    <div class="wa-head"><div class="avatar">L</div><div><b>Lumière Aesthetics</b><small>Orchard Road · usually replies instantly</small></div></div>
+    <div class="ad"><div class="thumb"></div><div><b>From Instagram ad</b><br><span>"Pico laser for pigmentation. First session S$188"</span></div></div>
+    <div class="chat" id="chat"></div>
+    <div class="quick" id="quick"></div>
+    <form class="compose" id="compose"><input id="inp" placeholder="Type a message" autocomplete="off"><button aria-label="Send">➤</button></form>
+  </section>
+
+  <section class="crm">
+    <div class="grid2">
+      <div class="card">
+        <h2>Lead card <span id="score" class="pill">Not scored</span></h2>
+        <div class="lead-top"><div class="avatar" id="lAv">?</div><div><b id="lName">New WhatsApp contact</b><span id="lStage" class="pill ac">New</span></div></div>
+        <dl>
+          <dt>Source</dt><dd id="fSource">-</dd>
+          <dt>Concern</dt><dd id="fConcern">-</dd>
+          <dt>Treatment</dt><dd id="fTreat">-</dd>
+          <dt>Laser history</dt><dd id="fHist">-</dd>
+          <dt>Timeline</dt><dd id="fTime">-</dd>
+          <dt>Mobile</dt><dd id="fPhone">-</dd>
+          <dt>Consultation</dt><dd id="fBook">-</dd>
+          <dt>Est. value</dt><dd id="fValue">-</dd>
+        </dl>
+        <div class="handoff" id="handoff">⚠ AI paused, needs a human: <span id="handoffWhy"></span></div>
+      </div>
+      <div class="card">
+        <h2>Activity <span class="pill" id="resp">-</span></h2>
+        <ul class="log" id="log"><li class="empty">Waiting for the first message…</li></ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Pipeline <span style="text-transform:none;letter-spacing:0">this week</span></h2>
+      <div class="pipe" id="pipe"></div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h2>Consultation slots</h2>
+        <div class="cal" id="cal"></div>
+      </div>
+      <div class="card">
+        <h2>Scheduled automations</h2>
+        <ul class="auto" id="auto"><li class="empty">Nothing yet. Book a consultation to see reminders and follow-ups.</li></ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Try what happens next</h2>
+      <div class="sim">
+        <button id="sNoShow" disabled onclick="simNoShow()">Lead doesn't show up</button>
+        <button id="sGhost" disabled onclick="simGhost()">Lead goes silent for 3 days</button>
+        <button id="sAfter" disabled onclick="simAfter()">After the visit</button>
+      </div>
+      <p class="empty" style="margin:10px 0 0">You can also type your own questions in the chat (price, pain, downtime, payment plan, location…). Anything the AI shouldn't answer goes to a human.</p>
+    </div>
+
+    <div class="card">
+      <h2>Ad report · last 30 days</h2>
+      <div class="scroll-x"><table>
+        <thead><tr><th>Ad</th><th>Spend</th><th>Leads</th><th>Qualified</th><th>Booked</th><th>Showed</th><th>Revenue</th><th>Cost / booking</th></tr></thead>
+        <tbody id="rep"></tbody>
+      </table></div>
+    </div>
+  </section>
+</main>
+<footer>
+  Demo with sample data and a fictional clinic. In this demo the assistant's replies follow a script so you can see the whole flow in a few minutes. In the live build the assistant runs on an AI model trained on the clinic's own price list, treatments and rules, connected to the WhatsApp Business API, Instagram DMs, the clinic's calendar and its CRM.
+</footer>
+
+<script>
+const $ = id => document.getElementById(id);
+const chatEl = $("chat"), quickEl = $("quick");
+const state = {name:null, phone:null, concern:null, hist:null, time:null, slot:null, stage:"New", started:false, firstReply:null};
+const now = () => new Date().toLocaleTimeString("en-SG",{hour:"2-digit",minute:"2-digit",hour12:false});
+
+function view(v){
+  document.body.dataset.view = v;
+  $("tChat").classList.toggle("on", v==="chat");
+  $("tCrm").classList.toggle("on", v==="crm");
+  if (v==="crm") $("crmDot").style.visibility="hidden";
+}
+function pingCrm(){ if (document.body.dataset.view==="chat") $("crmDot").style.visibility="visible"; }
+
+function bubble(text, who, tag){
+  const m = document.createElement("div");
+  m.className = "msg " + who;
+  if (tag) { const t=document.createElement("span"); t.className="tag"; t.textContent=tag; m.appendChild(t); }
+  m.appendChild(document.createTextNode(text));
+  if (who!=="sys"){ const tm=document.createElement("time"); tm.textContent=now(); m.appendChild(tm); }
+  chatEl.appendChild(m); chatEl.scrollTop = chatEl.scrollHeight;
+}
+function quick(opts){
+  quickEl.innerHTML="";
+  opts.forEach(([label, fn]) => { const b=document.createElement("button"); b.type="button"; b.textContent=label;
+    b.onclick=()=>{ quickEl.innerHTML=""; bubble(label,"out"); fn(); }; quickEl.appendChild(b); });
+}
+let busy = Promise.resolve();
+function ai(texts, then){
+  busy = busy.then(async () => {
+    for (const t of [].concat(texts)){
+      const ty=document.createElement("div"); ty.className="typing"; ty.textContent="typing…"; chatEl.appendChild(ty); chatEl.scrollTop=chatEl.scrollHeight;
+      await new Promise(r=>setTimeout(r, Math.min(1400, 450 + t.length*6)));
+      ty.remove(); bubble(t,"in","AI ASSISTANT");
+    }
+    if (then) then();
+  });
+}
+function log(text){
+  const ul=$("log"); if (ul.querySelector(".empty")) ul.innerHTML="";
+  const li=document.createElement("li"); li.innerHTML=`<time>${now()}</time><span></span>`; li.lastChild.textContent=text;
+  ul.prepend(li); pingCrm();
+}
+function setField(id, val){ const el=$(id); el.textContent=val; el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash"); pingCrm(); }
+function setStage(s){ state.stage=s; setField("lStage", s); renderPipe(); }
+function setScore(){
+  let pts = 0;
+  if (state.concern) pts += 1;
+  if (state.hist && state.hist!=="Yes, recently") pts += 1;
+  if (state.time==="This week") pts += 3; else if (state.time==="Within a month") pts += 2;
+  if (state.slot) pts += 3;
+  const [cls, label] = pts>=6 ? ["hot","Hot"] : pts>=3 ? ["warm","Warm"] : ["cold","Cold"];
+  const el=$("score"); el.className="pill "+cls; el.textContent=label+" · "+pts+"/8";
+}
+
+/* pipeline */
+const STAGES=["New","Engaged","Qualified","Booked","Showed"];
+const others={New:[["Priya S.","Acne scars · FB ad"],["Marcus T.","HIFU · Google"]],Engaged:[["Wei Ling","Pico · IG ad"]],Qualified:[["Nur A.","Melasma · referral"]],Booked:[["Jasmine K.","Thu 7:30pm"],["Daniel L.","Sat 10:00am"]],Showed:[["Hui Min","Bought 6-pack"]]};
+function renderPipe(){
+  $("pipe").innerHTML = STAGES.map(s=>{
+    const mine = state.started && (state.stage===s || (s==="Booked" && state.stage==="No-show rescue") || (s==="Showed" && state.stage==="Re-engaging"));
+    const label = state.stage==="No-show rescue"&&s==="Booked" ? "No-show, rescue sent" : state.stage==="Re-engaging"&&s==="Showed" ? "" : "";
+    const chips = (others[s]||[]).map(([n,d])=>`<div class="chip">${n}<small>${d}</small></div>`).join("");
+    const me = mine ? `<div class="chip me">${state.name||"You"}<small>${label || (state.concern||"Pico laser")+" · IG ad"}</small></div>` : "";
+    const n = (others[s]||[]).length + (mine?1:0);
+    return `<div class="stage"><h3>${s}<span>${n}</span></h3>${me}${chips}</div>`;
+  }).join("");
+}
+
+/* calendar */
+function nextSlots(){
+  const d=new Date(), out=[];
+  const fmt=x=>x.toLocaleDateString("en-SG",{weekday:"short",day:"numeric",month:"short"});
+  const times=[[19,0],[12,30],[11,30],[15,0],[18,30],[10,0]];
+  for (let day=1; out.length<times.length; day++){
+    const x=new Date(d); x.setDate(d.getDate()+day);
+    if (x.getDay()===0) continue;
+    const [h,m]=times[out.length]; const sat=x.getDay()===6;
+    x.setHours(sat&&h>=17?14:h, m, 0, 0); out.push(x);
+  }
+  return out.map(x=>({date:x, label:fmt(x)+", "+x.toLocaleTimeString("en-SG",{hour:"numeric",minute:"2-digit"})}));
+}
+const SLOTS=nextSlots(); const TAKEN=new Set([1,4]);
+function renderCal(){
+  $("cal").innerHTML = SLOTS.map((s,i)=>`<div class="slot ${TAKEN.has(i)?"taken":""} ${state.slot===i?"mine":""}">${s.label}${state.slot===i?"<br>"+(state.name||"You"):""}</div>`).join("");
+}
+
+/* report */
+const REP=[["IG · PICO-188-A",1840,64,38,21,17,9860],["IG · PICO-188-B",1620,41,19,9,7,3920],["FB · HIFU-FIRST",2210,37,22,13,11,12480],["Google · melasma",1350,22,15,10,9,6210]];
+function renderRep(extra){
+  const rows = REP.map(r=>r.slice());
+  if (extra) rows[0][2]+=1, extra.booked&&(rows[0][4]+=1);
+  $("rep").innerHTML = rows.map(r=>`<tr><td>${r[0]}</td><td>S$${r[1].toLocaleString()}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td><td>${r[5]}</td><td>S$${r[6].toLocaleString()}</td><td>S$${Math.round(r[1]/r[4])}</td></tr>`).join("");
+}
+
+/* free-text FAQ */
+const FAQ=[
+  [/price|cost|how much|\$|fee/i,"The first Pico laser session is S$188 (normally S$380). Most people with pigmentation need 4 to 6 sessions; the doctor confirms the exact plan at the consultation, which is free."],
+  [/pain|hurt|painful/i,"Most clients describe it as a light rubber-band snap. We apply numbing cream first, and a full-face session takes about 15 minutes."],
+  [/downtime|recover|red|peel|work after/i,"Usually some redness for a few hours, and you can go back to work the same day. Fine darkening of spots can show for 5 to 7 days before it flakes off."],
+  [/instal|payment plan|pay monthly|atome|grab ?pay|split/i,"Yes, packages can be split into 3 interest-free payments with Atome, or paid by card, PayNow or NETS."],
+  [/where|location|address|parking|mrt/i,"We're at Orchard Road, 3 minutes' walk from Orchard MRT (exit B). Parking is available in the same building."],
+  [/doctor|who does|qualified|registered/i,"All laser treatments are done by our MOH-registered aesthetic doctor, never by a beautician."],
+  [/open|hours|time do you|weekend|sunday/i,"We're open Mon to Fri 11am to 9pm and Sat 10am to 6pm, closed on Sundays and public holidays."],
+  [/pregnan|breastfeed|isotretinoin|accutane|roaccutane/i,null],
+];
+function freeText(text){
+  if (!state.started) { start(text); return; }
+  for (const [re, ans] of FAQ){
+    if (re.test(text)){
+      if (ans===null){ handoff("Medical question (pregnancy/medication). Doctor must answer."); ai("Thanks for telling me. That's something our doctor needs to answer personally, so I've passed your message to the team and someone will reply here shortly."); return; }
+      ai(ans, resumeQuick); log("AI answered FAQ: \""+text.slice(0,40)+"\""); return;
+    }
+  }
+  if (step==="name"){ const n=text.trim().split(/\s+/)[0]; state.name=n.charAt(0).toUpperCase()+n.slice(1); askPhone(); return; }
+  if (step==="phone"){ state.phone=text.trim(); confirmBooking(); return; }
+  handoff("Question outside the AI's rules: \""+text.slice(0,60)+"\"");
+  ai("Good question. I don't want to guess on that, so I've flagged it for our clinic team and they'll reply here shortly. In the meantime, shall we keep going?", resumeQuick);
+}
+function handoff(why){ $("handoff").style.display="block"; $("handoffWhy").textContent=why; log("Handed to human: "+why); }
+
+/* scripted flow */
+let step="start", lastQuick=null;
+function setQuick(opts){ lastQuick=opts; quick(opts); }
+function resumeQuick(){ if (lastQuick && !quickEl.children.length) quick(lastQuick); }
+
+function start(text){
+  state.started=true; state.firstReply=performance.now();
+  bubble(text,"out");
+  setField("fSource","Instagram ad · PICO-188-A"); setField("lName","New WhatsApp contact");
+  setStage("New"); log("New lead from Instagram ad PICO-188-A"); renderRep({});
+  ai(["Hi! Thanks for reaching out to Lumière Aesthetics 😊 The first Pico laser session is S$188 (usual price S$380), and the doctor consultation is free.",
+      "So I can point you to the right treatment, what would you most like to improve?"], ()=>{
+    $("resp").textContent="First reply in "+((performance.now()-state.firstReply)/1000).toFixed(1)+"s";
+    setStage("Engaged"); log("AI replied, asked about main concern"); step="concern";
+    setQuick([["Pigmentation / melasma",()=>concern("Pigmentation / melasma","Pico laser")],["Acne scars",()=>concern("Acne scars","Pico laser + fractional")],["Dull, uneven skin",()=>concern("Dull, uneven skin","Pico toning")],["Not sure yet",()=>concern("Not sure yet","Doctor to assess")]]);
+  });
+}
+function concern(c, treat){
+  state.concern=c; setField("fConcern",c); setField("fTreat",treat); setScore(); log("Concern captured: "+c);
+  const why = c==="Acne scars" ? "For acne scars we usually combine Pico laser with fractional resurfacing, and most people see a visible change after 3 sessions."
+    : c==="Not sure yet" ? "No problem, that's exactly what the free consultation is for: the doctor looks at your skin and suggests a plan, with no obligation."
+    : "Pico laser is a good fit for that. It breaks pigment into tiny particles with very little downtime, so most people go back to work the same day.";
+  ai([why,"Have you had any laser treatment before?"], ()=>{ step="hist";
+    setQuick([["Never",()=>hist("Never")],["Yes, a while ago",()=>hist("Yes, a while ago")],["Yes, in the last month",()=>hist("Yes, recently")]]);
+  });
+}
+function hist(h){
+  state.hist=h; setField("fHist",h); setScore(); log("Laser history: "+h);
+  const pre = h==="Yes, recently" ? "Thanks, good to know. The doctor will check the spacing between sessions at your consultation to keep it safe." : "Great, thanks.";
+  ai([pre,"When are you hoping to start?"], ()=>{ step="time";
+    setQuick([["This week",()=>timing("This week")],["Within a month",()=>timing("Within a month")],["Just researching",()=>timing("Just researching")]]);
+  });
+}
+function timing(t){
+  state.time=t; setField("fTime",t); setScore(); setStage("Qualified"); log("Qualified, timeline: "+t);
+  const v = state.concern==="Acne scars" ? "S$1,680 (6-session plan)" : "S$1,280 (6-session plan)"; setField("fValue",v);
+  const msgs = t==="Just researching"
+    ? ["Totally fine to take your time. Many clients book the free consultation first just to get a proper skin assessment and a clear price, with no pressure to go ahead.","Would one of these times work?"]
+    : ["Perfect. The S$188 first-session offer is valid this month, and you can do the consultation and the first session on the same visit if the doctor says you're suitable.","Here are the next free slots:"];
+  ai(msgs, ()=>{ step="slot";
+    const opts = SLOTS.map((s,i)=>[s,i]).filter(([s,i])=>!TAKEN.has(i)).slice(0,3).map(([s,i])=>[s.label,()=>pickSlot(i)]);
+    opts.push(["None of these work",()=>{ ai("No problem. Which day and time suits you better? You can type it here and our team will confirm it.", ()=>{ handoff("Lead needs a custom time slot"); setQuick(opts.slice(0,3)); }); }]);
+    setQuick(opts);
+  });
+}
+function pickSlot(i){
+  state.slot=i; renderCal(); setScore(); log("Slot held: "+SLOTS[i].label);
+  ai("Great choice, I've held "+SLOTS[i].label+" for you. What's your name?", ()=>{ step="name";
+    setQuick([["Ron",()=>{ state.name="Ron"; askPhone(); }],["(type your own name)",()=>{ $("inp").focus(); }]]);
+  });
+}
+function askPhone(){
+  setField("lName", state.name); $("lAv").textContent=state.name[0]; renderPipe(); renderCal();
+  ai("Thanks "+state.name+"! Is this WhatsApp number the best one to reach you, or would you like to use another mobile?", ()=>{ step="phone";
+    setQuick([["This number is fine",()=>{ state.phone="+65 9123 4567 (WhatsApp)"; confirmBooking(); }]]);
+  });
+}
+function confirmBooking(){
+  step="done"; setField("fPhone", state.phone); setField("fBook", SLOTS[state.slot].label);
+  setStage("Booked"); setScore(); renderRep({booked:true}); log("Consultation booked, calendar updated, team notified");
+  const d=SLOTS[state.slot].date;
+  const rel=(h)=>{const x=new Date(d.getTime()+h*3600e3); return x.toLocaleDateString("en-SG",{weekday:"short",day:"numeric",month:"short"})+", "+x.toLocaleTimeString("en-SG",{hour:"numeric",minute:"2-digit"});};
+  $("auto").innerHTML = [
+    ["WhatsApp confirmation + map pin","Sent now"],
+    ["Reminder: \"See you tomorrow, reply C to confirm\"",rel(-24)],
+    ["Reminder: \"See you in 2 hours\"",rel(-2)],
+    ["No-show rescue: offer 2 new slots",rel(0.5)+" if no check-in"],
+    ["Post-visit: aftercare tips + package offer",rel(26)],
+    ["Google review request",rel(24*4)],
+    ["Re-activation if no package bought",rel(24*30)],
+  ].map(([a,w])=>`<li><span>${a}</span><span class="when">${w}</span></li>`).join("");
+  ai(["You're booked, "+state.name+"! ✅\n\nFree consultation + skin assessment\n"+SLOTS[state.slot].label+"\nLumière Aesthetics, Orchard Road (3 min from Orchard MRT, exit B)",
+      "I'll send you a reminder the day before. If anything changes, just reply here and I'll move it for you. Anything else you'd like to know before your visit?"], ()=>{
+    ["sNoShow","sGhost","sAfter"].forEach(id=>$(id).disabled=false);
+    bubble("Now try the buttons under “Try what happens next” in the CRM, or ask the assistant a question (pain, downtime, payment plan…).","sys");
+    setQuick([["Is it painful?",()=>freeTextQuiet("painful")],["Any downtime?",()=>freeTextQuiet("downtime")],["Can I pay in instalments?",()=>freeTextQuiet("instalments")]]);
+  });
+}
+function freeTextQuiet(t){ for (const [re,ans] of FAQ) if (ans && re.test(t)) { ai(ans, resumeQuick); log("AI answered FAQ: "+t); return; } }
+
+/* simulations */
+function simNoShow(){
+  $("sNoShow").disabled=true; setStage("No-show rescue"); log("No check-in 30 min after slot, no-show rescue sent");
+  bubble("Simulated: 30 minutes after the appointment, the lead hasn't checked in","sys");
+  const free = SLOTS.map((s,i)=>[s,i]).filter(([s,i])=>!TAKEN.has(i) && i!==state.slot).slice(0,2);
+  ai("Hi "+(state.name||"there")+", we missed you today, no worries, things come up! Would you like to move your free consultation to "+free[0][0].label+" or "+free[1][0].label+"?", ()=>{
+    setQuick([[free[0][0].label,()=>{ TAKEN.add(state.slot); state.slot=free[0][1]; renderCal(); setField("fBook",SLOTS[state.slot].label); setStage("Booked"); log("Rebooked by AI after no-show"); ai("Done, you're rebooked for "+SLOTS[state.slot].label+". See you then! 😊", resumeQuick); }]]);
+  });
+}
+function simGhost(){
+  $("sGhost").disabled=true; log("No reply for 3 days, follow-up 1 of 3 sent");
+  bubble("Simulated: the lead stopped replying 3 days ago","sys");
+  ai("Hi "+(state.name||"there")+", just checking in. The S$188 first Pico session offer ends this month. Would you like me to keep a slot for you this week?", resumeQuick);
+}
+function simAfter(){
+  $("sAfter").disabled=true; setStage("Showed"); renderPipe(); log("Visit completed, aftercare + package offer sent");
+  bubble("Simulated: the day after the visit","sys");
+  ai(["Hi "+(state.name||"there")+", hope your skin is feeling good today! Quick aftercare reminder: SPF 50 every morning and no scrubs for 5 days.","If you'd like to continue, the 6-session plan the doctor recommended is S$1,280, or 3 interest-free payments with Atome. Shall I book session 2 for you?"], resumeQuick);
+}
+
+$("compose").onsubmit = e => { e.preventDefault(); const v=$("inp").value.trim(); if(!v) return; $("inp").value="";
+  if (state.started) bubble(v,"out"); quickEl.innerHTML=""; freeText(v); };
+
+renderPipe(); renderCal(); renderRep();
+bubble("Tap the message below to start as a lead who just clicked the ad.","sys");
+quick([["Hi, I saw your ad for pico laser. How much is it?",()=>{ chatEl.innerHTML=""; start("Hi, I saw your ad for pico laser. How much is it?"); }]]);
+</script>
+</body>
+</html>
